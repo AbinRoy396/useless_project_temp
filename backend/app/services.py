@@ -9,16 +9,10 @@ from sqlalchemy.orm import Session
 from .models import Complaint
 
 CATEGORY_KEYWORDS = {
-    "Wi-Fi": ("wifi", "wi-fi", "internet", "network"),
-    "Timetable": ("timetable", "schedule", "reschedule"),
-    "Attendance": ("attendance", "absent"),
-    "Infrastructure": ("projector", "classroom", "bench", "ac ", "toilet"),
-    "Canteen": ("canteen", "food", "meal"),
-    "Transport": ("bus", "transport"),
-    "Examination": ("exam", "examination", "result"),
-    "Hostel": ("hostel", "room"),
-    "Fees": ("fee", "fees", "payment"),
-    "Academic": ("assignment", "course", "syllabus"),
+    "Wi-Fi": ("wifi", "wi-fi", "internet", "network"), "Timetable": ("timetable", "schedule", "reschedule"),
+    "Attendance": ("attendance", "absent"), "Infrastructure": ("projector", "classroom", "bench", "ac ", "toilet"),
+    "Canteen": ("canteen", "food", "meal"), "Transport": ("bus", "transport"), "Examination": ("exam", "examination", "result"),
+    "Hostel": ("hostel", "room"), "Fees": ("fee", "fees", "payment"), "Academic": ("assignment", "course", "syllabus"),
 }
 
 
@@ -54,9 +48,31 @@ def dashboard(db: Session) -> dict:
     return {"total_complaints": count, "average_frustration": average, "campus_score": campus, "level": level, "categories": categories, "departments": departments, "recent_complaints": complaints[:10]}
 
 
+def category_summary(categories: list[dict]) -> str:
+    """Summarize every category count without exposing complaint text."""
+    return ", ".join(f"{item['name']}: {item['count']}" for item in categories)
+
+
+def build_respectful_roast(data: dict) -> str:
+    """Create a parody from the complete daily aggregate, never raw reports."""
+    categories = data["categories"]
+    if not categories:
+        return "The campus has filed no complaints today. We consider this a rare and suspicious moment of peace."
+    top = categories[0]
+    return (
+        f"Across {data['total_complaints']} reports spanning {len(categories)} categories, students averaged "
+        f"{data['average_frustration']}/10 frustration. {top['name']} leads with {top['count']} reports. "
+        f"Full signal board: {category_summary(categories)}. "
+        "At this point, the campus issue tracker has more plot twists than the timetable."
+    )
+
+
 def report(db: Session) -> dict:
+    # dashboard() reads every complaint submitted today and aggregates them before
+    # this report (including the roast) is composed. Raw complaint text never
+    # reaches the roast layer.
     data = dashboard(db)
     top = data["categories"][0]["name"] if data["categories"] else "No concern yet"
     actions = [f"Assign an owner to investigate {top}.", "Publish a clear acknowledgement and resolution timeline.", "Review progress with student representatives this week."]
-    roast = f"Today’s students suggest that {top} has achieved a level of campus fame most departments can only dream of."
-    return {**data, "top_concern": top, "executive_summary": f"{data['total_complaints']} anonymous reports were received today. The campus frustration index is {data['campus_score']}/100, with {top} as the strongest reported signal.", "suggested_actions": actions, "roast": roast}
+    breakdown = category_summary(data["categories"]) or "No category signals yet"
+    return {**data, "top_concern": top, "executive_summary": f"{data['total_complaints']} anonymous reports were received today. The campus frustration index is {data['campus_score']}/100. Full category aggregate: {breakdown}.", "suggested_actions": actions, "roast": build_respectful_roast(data)}
