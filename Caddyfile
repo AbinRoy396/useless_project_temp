@@ -1,0 +1,10 @@
+:80 {
+    root * /srv
+    file_server
+    encode gzip
+    cors {
+        allowed_origins https://principain.onrender.com http://localhost:3000
+        allowed_methods GET, POST, PUT, DELETE, OPTIONS
+        allowed_headers *
+    }
+}

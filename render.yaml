@@ -1,0 +1,44 @@
+databases:
+  - name: principain-db
+    plan: free
+    databaseName: campus_voice
+    user: campus_voice
+
+services:
+  - type: web
+    name: principain
+    runtime: docker
+    dockerContext: .
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: principain-db
+          property: connectionString
+      - key: FRONTEND_DIR
+        value: /app/frontend
+      - key: ALLOWED_ORIGINS
+        value: https://principain.onrender.com
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: ADMIN_TOKEN_SECRET
+        generateValue: true
+      - key: ADMIN_REPORT_RECIPIENT
+        value: abhilamanakkal@gmail.com
+      - key: EMAIL_MODE
+        value: preview
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_STARTTLS
+        value: "true"
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false
