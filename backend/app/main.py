@@ -61,8 +61,8 @@ def get_dashboard(db: Session = Depends(get_db)):
     return dashboard(db)
 
 
-@app.get("/api/reports/daily", response_model=ReportOut)
-def get_daily_report(db: Session = Depends(get_db)):
+@app.get("/api/admin/reports/daily", response_model=ReportOut)
+def get_daily_report(admin: str = Depends(current_admin), db: Session = Depends(get_db)):
     return report(db)
 
 

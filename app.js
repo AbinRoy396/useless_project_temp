@@ -31,8 +31,9 @@ async function refreshDashboard() {
 }
 
 async function showReport() {
-  try {
-    const report = await request("/api/reports/daily");
+  requireAdmin(async (token) => {
+    try {
+    const report = await request("/api/admin/reports/daily", {headers:{Authorization:`Bearer ${token}`}});
     $("report-count").textContent = report.total_complaints;
     $("report-score").textContent = report.campus_score.toFixed(1);
     $("report-top").textContent = report.top_concern;
@@ -41,7 +42,8 @@ async function showReport() {
     $("roast").textContent = `“${report.roast}”`;
     $("report-actions").innerHTML = report.suggested_actions.map((action) => `<li>${escapeHtml(action)}</li>`).join("");
     $("report-modal").classList.add("open");
-  } catch { alert("Start the API before viewing the live report."); }
+    } catch { alert("The admin report could not be loaded."); }
+  });
 }
 
 document.querySelectorAll(".mood").forEach((button) => button.addEventListener("click", () => { document.querySelectorAll(".mood").forEach((item) => item.classList.remove("selected")); button.classList.add("selected"); mood = Number(button.dataset.mood); }));
@@ -58,7 +60,10 @@ $("report-button").addEventListener("click", showReport); $("close-report").addE
 let pendingAdminAction = null;
 
 function updateAdminUi() {
-  $("logout-button").style.display = sessionStorage.getItem("campus_voice_admin_token") ? "block" : "none";
+  const signedIn = Boolean(sessionStorage.getItem("campus_voice_admin_token"));
+  $("logout-button").style.display = signedIn ? "block" : "none";
+  $("report-card").style.display = signedIn ? "block" : "none";
+  document.querySelectorAll("[data-admin-only]").forEach((item) => item.style.display = signedIn ? "" : "none");
 }
 
 function requireAdmin(action) {
